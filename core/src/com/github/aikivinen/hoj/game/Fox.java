@@ -9,7 +9,11 @@ public class Fox extends Piece {
 
     public Fox() {
         super();
-        setTexture(new Texture("fox.png"));
+        setTexture(getDefaultTexture());
+    }
+
+    public Texture getDefaultTexture() {
+        return new Texture("fox.png");
     }
 
     /**
@@ -23,5 +27,6 @@ public class Fox extends Piece {
         }
         return false;
     }
+
 
 }

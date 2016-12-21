@@ -2,17 +2,19 @@ package com.github.aikivinen.hoj.game;
 
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Rectangle;
 
-public abstract class Piece extends Rectangle {
+public abstract class Piece  {
 
     public static final int PIECE_SIZE = MyGdxGame.SQUARE_SIZE - 10;
     protected Texture texture;
+
+    protected  Texture savedTexture;
     private int locationX;
     private int locationY;
 
+
     public Piece() {
-        setSize(PIECE_SIZE);
+
     }
 
 
@@ -40,6 +42,8 @@ public abstract class Piece extends Rectangle {
         this.locationY = locationY;
     }
 
+    public abstract  Texture getDefaultTexture() ;
+
     /**
      * Move piece to the given coordinates. The method implementation should enforce that the move is valid.
      *
@@ -62,5 +66,14 @@ public abstract class Piece extends Rectangle {
      * @return true if the Piece is allowed to move to the given coordinates
      */
     public abstract boolean isAllowedToMoveTo(int x, int y);
+
+    public void setSelected(boolean selected) {
+        if (selected) {
+            setTexture(new Texture("selected.png"));
+        }  else {
+            setTexture(getDefaultTexture());
+        }
+    }
+
 
 }

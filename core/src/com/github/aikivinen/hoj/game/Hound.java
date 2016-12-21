@@ -3,11 +3,11 @@ package com.github.aikivinen.hoj.game;
 
 import com.badlogic.gdx.graphics.Texture;
 
-public class Hound extends  Piece{
+public class Hound extends Piece {
 
     public Hound() {
         super();
-        setTexture(new Texture("hound.png"));
+        setTexture(getDefaultTexture());
     }
 
 
@@ -16,5 +16,9 @@ public class Hound extends  Piece{
         return false;
     }
 
+    @Override
+    public Texture getDefaultTexture() {
+        return new Texture("hound.png");
+    }
 
 }

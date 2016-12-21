@@ -1,8 +1,6 @@
 package com.github.aikivinen.hoj.game;
 
-import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
+import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -11,8 +9,9 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.TimeUtils;
 
-public class MyGdxGame extends ApplicationAdapter {
+public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
+    public static final int SCREEN_HEIGHT = 640;
     long lastMov;
 
     public static final int BOARD_WIDTH = 8;
@@ -34,11 +33,23 @@ public class MyGdxGame extends ApplicationAdapter {
 
     private Fox[] foxes = new Fox[1];
 
+    private Hound[] hounds = new Hound[4];
+
 
     @Override
     public void create() {
-        Fox fox = new Fox();
-        foxes[0] = fox;
+
+        Gdx.app.setLogLevel(Application.LOG_DEBUG);
+        Gdx.input.setInputProcessor(this);
+
+        foxes[0] = new Fox();
+
+        for (int i = 0; i < hounds.length; i++) {
+            Hound hound = new Hound();
+            hound.setLocationY(BOARD_HEIGHT - 1);
+            hound.setLocationX(2 * i + 1);
+            hounds[i] = hound;
+        }
 
         for (int i = 0; i < BOARD_WIDTH; i++) {
             for (int j = 0; j < BOARD_HEIGHT; j++) {
@@ -107,6 +118,10 @@ public class MyGdxGame extends ApplicationAdapter {
             myFox.setLocationY(BOARD_HEIGHT - 1);
         }
 
+        if (Gdx.input.isTouched()) {
+            int xcoord = Gdx.input.getX();
+            int ycoord = Gdx.input.getY();
+        }
 
 
         batch.begin();
@@ -118,11 +133,11 @@ public class MyGdxGame extends ApplicationAdapter {
             }
         }
 
-        drawPiece(myFox);
+        for (Piece p : concat(hounds, foxes)) {
+            drawPiece(p);
+        }
 
         batch.end();
-
-
     }
 
     private void drawPiece(Piece piece) {
@@ -130,8 +145,8 @@ public class MyGdxGame extends ApplicationAdapter {
                 piece.getTexture(),
                 piece.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
                 piece.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
-                piece.width,
-                piece.height);
+                piece.PIECE_SIZE,
+                piece.PIECE_SIZE);
     }
 
     @Override
@@ -141,5 +156,83 @@ public class MyGdxGame extends ApplicationAdapter {
             disposable.dispose();
         }
 
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return false;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        selectPiece(null);
+
+        // normalize screenY
+        screenY = SCREEN_HEIGHT - screenY;
+
+        // process pieces
+        for (Piece p : concat(hounds, foxes)) {
+            if ((p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
+                    && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT + p.PIECE_SIZE >= screenY)
+                    && (p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
+                    && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + p.PIECE_SIZE >= screenX)) {
+
+                selectPiece(p);
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+        return false;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return false;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return false;
+    }
+
+    @Override
+    public boolean scrolled(int amount) {
+        return false;
+    }
+
+    public void selectPiece(Piece piece) {
+        if (piece == null) {
+            if (selectedPiece != null) {
+                selectedPiece.setSelected(false);
+                selectedPiece = null;
+            }
+        } else {
+            piece.setSelected(true);
+            selectedPiece = piece;
+        }
+    }
+
+
+    public Piece[] concat(Piece[] a, Piece[] b) {
+        int aLen = a.length;
+        int bLen = b.length;
+        Piece[] c = new Piece[aLen + bLen];
+        System.arraycopy(a, 0, c, 0, aLen);
+        System.arraycopy(b, 0, c, aLen, bLen);
+        return c;
     }
 }
