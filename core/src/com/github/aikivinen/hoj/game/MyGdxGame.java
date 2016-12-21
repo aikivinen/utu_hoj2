@@ -1,18 +1,24 @@
 package com.github.aikivinen.hoj.game;
 
-import com.badlogic.gdx.*;
+import com.badlogic.gdx.Application;
+import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.TimeUtils;
 
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
+    public enum Turn {FOX, HOUNDS}
+
+    // fox starts the game
+    private Turn currentTurn = Turn.FOX;
+
     public static final int SCREEN_HEIGHT = 640;
-    long lastMov;
 
     public static final int BOARD_WIDTH = 8;
     public static final int BOARD_HEIGHT = 8;
@@ -21,13 +27,13 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     final int BOARD_MARGIN_SIDES = 50;
     final int BOARD_MARGIN_TOP_BOTT = 50;
 
-    SpriteBatch batch;
-    OrthographicCamera camera;
+    private SpriteBatch batch;
+    private OrthographicCamera camera;
 
     final Rectangle[][] board = new Rectangle[BOARD_WIDTH][BOARD_HEIGHT];
     private Texture redSquare;
     private Texture blackSquare;
-    private Texture availableMoveSquare;
+//    private Texture availableMoveSquare;
 
     private Piece selectedPiece;
 
@@ -69,7 +75,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         batch = new SpriteBatch();
         redSquare = new Texture("red.png");
         blackSquare = new Texture("black.png");
-        availableMoveSquare = new Texture("green.png");
+        //      availableMoveSquare = new Texture("green.png");
 
 
     }
@@ -78,51 +84,6 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     public void render() {
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        Fox myFox = foxes[0];
-
-
-        // keyboard movement
-        if (TimeUtils.nanoTime() - lastMov > 150000000) {
-
-            if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-                myFox.setLocationX(myFox.getLocationX() - 1);
-                lastMov = TimeUtils.nanoTime();
-            }
-
-            if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-                myFox.setLocationX(myFox.getLocationX() + 1);
-                lastMov = TimeUtils.nanoTime();
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.UP)) {
-                myFox.setLocationY(myFox.getLocationY() + 1);
-                lastMov = TimeUtils.nanoTime();
-            }
-            if (Gdx.input.isKeyPressed(Input.Keys.DOWN)) {
-                myFox.setLocationY(myFox.getLocationY() - 1);
-                lastMov = TimeUtils.nanoTime();
-            }
-        }
-
-        // prevent piece(s) from moving outside of the board
-        if (myFox.getLocationX() < 0) {
-            myFox.setLocationX(0);
-        }
-        if (myFox.getLocationX() >= BOARD_WIDTH) {
-            myFox.setLocationX(BOARD_WIDTH - 1);
-        }
-        if (myFox.getLocationY() < 0) {
-            myFox.setLocationY(0);
-        }
-        if (myFox.getLocationY() >= BOARD_HEIGHT) {
-            myFox.setLocationY(BOARD_HEIGHT - 1);
-        }
-
-        if (Gdx.input.isTouched()) {
-            int xcoord = Gdx.input.getX();
-            int ycoord = Gdx.input.getY();
-        }
-
 
         batch.begin();
         for (int x = 0; x < BOARD_WIDTH; x++) {
@@ -145,8 +106,8 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
                 piece.getTexture(),
                 piece.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
                 piece.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
-                piece.PIECE_SIZE,
-                piece.PIECE_SIZE);
+                Piece.PIECE_SIZE,
+                Piece.PIECE_SIZE);
     }
 
     @Override
@@ -175,6 +136,9 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        Gdx.app.log(this.getClass().getSimpleName(), "in touchdown");
+
+        Piece prevSelection = selectedPiece;
         selectPiece(null);
 
         // normalize screenY
@@ -183,15 +147,39 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         // process pieces
         for (Piece p : concat(hounds, foxes)) {
             if ((p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
-                    && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT + p.PIECE_SIZE >= screenY)
+                    && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT + Piece.PIECE_SIZE >= screenY)
                     && (p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
-                    && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + p.PIECE_SIZE >= screenX)) {
+                    && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + Piece.PIECE_SIZE >= screenX)) {
 
                 selectPiece(p);
+            } else {
+                if (prevSelection != null) {
+                    selectPiece(null);
+                    if (currentTurn == Turn.FOX && prevSelection instanceof Fox
+                            || currentTurn == Turn.HOUNDS && prevSelection instanceof Hound) {
+
+                        if (prevSelection.moveTo(
+                                (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE,
+                                (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE)) {
+
+
+                            flipTurn();
+                        }
+                        prevSelection = null;
+                    }
+                }
             }
         }
 
         return true;
+    }
+
+    private void flipTurn() {
+        if (currentTurn == Turn.FOX) {
+            currentTurn = Turn.HOUNDS;
+        } else if (currentTurn == Turn.HOUNDS) {
+            currentTurn = Turn.FOX;
+        }
     }
 
     @Override

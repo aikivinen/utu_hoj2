@@ -1,14 +1,15 @@
 package com.github.aikivinen.hoj.game;
 
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 
-public abstract class Piece  {
+public abstract class Piece {
 
     public static final int PIECE_SIZE = MyGdxGame.SQUARE_SIZE - 10;
     protected Texture texture;
 
-    protected  Texture savedTexture;
+    protected Texture savedTexture;
     private int locationX;
     private int locationY;
 
@@ -42,7 +43,7 @@ public abstract class Piece  {
         this.locationY = locationY;
     }
 
-    public abstract  Texture getDefaultTexture() ;
+    public abstract Texture getDefaultTexture();
 
     /**
      * Move piece to the given coordinates. The method implementation should enforce that the move is valid.
@@ -53,9 +54,12 @@ public abstract class Piece  {
      */
     public boolean moveTo(int x, int y) {
         if (isAllowedToMoveTo(x, y)) {
+            Gdx.app.log(this.toString(), String.format("Moving to %s %s: ", x, y));
             setLocationX(x);
             setLocationY(y);
             return true;
+        } else {
+            Gdx.app.log(this.toString(), String.format("Illegal move: %s %s", x, y));
         }
         return false;
     }
@@ -70,7 +74,7 @@ public abstract class Piece  {
     public void setSelected(boolean selected) {
         if (selected) {
             setTexture(new Texture("selected.png"));
-        }  else {
+        } else {
             setTexture(getDefaultTexture());
         }
     }
