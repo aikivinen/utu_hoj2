@@ -11,6 +11,9 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     public enum Turn {FOX, HOUNDS}
@@ -158,11 +161,12 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
                     if (currentTurn == Turn.FOX && prevSelection instanceof Fox
                             || currentTurn == Turn.HOUNDS && prevSelection instanceof Hound) {
 
-                        if (prevSelection.moveTo(
-                                (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE,
-                                (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE)) {
 
+                        int locX = (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE;
+                        int locY = (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE;
+                        List<Piece> pieces = Arrays.asList(concat(foxes, hounds));
 
+                        if (prevSelection.moveTo(locX, locY, pieces)) {
                             flipTurn();
                         }
                         prevSelection = null;
