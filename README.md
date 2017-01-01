@@ -10,3 +10,13 @@ This version (also called "Wolf and Sheep", "Hounds and Hare", or "Devil and Tai
 The hounds move like a draughts man, diagonally forward one square. The fox moves like a draughts king, diagonally forward or backward one square. However there is no jumping, promotion, or removal of pieces. The play alternates with the fox moving first. The player controlling the hounds may move only one of them each turn.
 
 The fox is trapped when it can no longer move to a vacant square. It is possible for two hounds to trap the fox against an edge of the board (other than their original home-row) or even one corner (see diagram) where a single hound may do the trapping. Should a hound reach the fox's original home row it will be unable to move further.
+
+# How to build 
+
+TODO... should work with gradle wrapper in the end...
+
+# How to run..
+
+You have to cd to /core/build/classes/main and run 'rmiregistry' then run the main method in DesktopLauncher with param 'server' to launch the hosting peer. After that start another instance of DesktopLauncher with no parameters to launch the connecting peer. 
+
+This stuff currently works in localhost only..
