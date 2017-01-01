@@ -3,9 +3,10 @@ package com.github.aikivinen.hoj.game;
 
 import com.badlogic.gdx.graphics.Texture;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class Fox extends Piece {
+public class Fox extends Piece implements Serializable {
 
     public static final int MAX_MOVE_DIST = 1;
 

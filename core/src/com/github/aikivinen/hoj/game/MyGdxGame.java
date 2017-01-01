@@ -1,7 +1,7 @@
 package com.github.aikivinen.hoj.game;
 
 import com.badlogic.gdx.Application;
-import com.badlogic.gdx.ApplicationAdapter;
+import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
@@ -10,11 +10,17 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
+import com.github.aikivinen.hoj.game.rmi.GameService;
+import com.github.aikivinen.hoj.game.rmi.Move;
 
+import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
 
-public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
+public class MyGdxGame  implements ApplicationListener, InputProcessor, GameService, Serializable {
+
+
 
     public enum Turn {FOX, HOUNDS}
 
@@ -44,6 +50,13 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
     private Hound[] hounds = new Hound[4];
 
+    private GameService remote;
+
+
+
+    public MyGdxGame() throws RemoteException{
+
+    }
 
     @Override
     public void create() {
@@ -84,6 +97,11 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
     }
 
     @Override
+    public void resize(int width, int height) {
+
+    }
+
+    @Override
     public void render() {
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -102,6 +120,16 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         }
 
         batch.end();
+    }
+
+    @Override
+    public void pause() {
+
+    }
+
+    @Override
+    public void resume() {
+
     }
 
     private void drawPiece(Piece piece) {
@@ -162,11 +190,19 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
                             || currentTurn == Turn.HOUNDS && prevSelection instanceof Hound) {
 
 
+                        int fromX = prevSelection.getLocationX();
+                        int fromY = prevSelection.getLocationY();
+
                         int locX = (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE;
                         int locY = (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE;
                         List<Piece> pieces = Arrays.asList(concat(foxes, hounds));
 
                         if (prevSelection.moveTo(locX, locY, pieces)) {
+                            try {
+                                remote.movePiece(new Move(fromX, fromY, locX, locY));
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
                             flipTurn();
                         }
                         prevSelection = null;
@@ -177,6 +213,7 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
 
         return true;
     }
+
 
     private void flipTurn() {
         if (currentTurn == Turn.FOX) {
@@ -218,6 +255,28 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         }
     }
 
+    @Override
+    public boolean movePiece(Move move) throws RemoteException {
+        System.out.println("movePiece" + " " + move);
+        for (int i = 0; i < foxes.length; i++) {
+            System.out.println(foxes[i]);
+        }
+        for (int i = 0; i < hounds.length; i++) {
+            System.out.println(hounds[i]);
+        }
+        List<Piece> pieces = getPieces();
+        System.out.println(Arrays.toString(pieces.toArray()));
+
+        Piece selection = null;
+        for (Piece p : pieces) {
+            if (p.getLocationX() == move.getFromX() && p.getLocationY() == move.getFromY()) {
+                selection = p;
+            }
+        }
+        flipTurn();
+        return selection != null && selection.moveTo(move.getToX(), move.getToY(), pieces);
+    }
+
 
     public Piece[] concat(Piece[] a, Piece[] b) {
         int aLen = a.length;
@@ -226,5 +285,24 @@ public class MyGdxGame extends ApplicationAdapter implements InputProcessor {
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
         return c;
+    }
+
+    public GameService getRemote() {
+        return remote;
+    }
+
+    public void setRemote(GameService remote) {
+       System.out.println("setRemote");
+        this.remote = remote;
+    }
+
+    @Override
+    public void setRemoteService(GameService remote) throws RemoteException {
+        setRemote(remote);
+    }
+
+    @Override
+    public List<Piece> getPieces() throws RemoteException {
+        return  Arrays.asList(concat(foxes, hounds));
     }
 }

@@ -4,9 +4,10 @@ package com.github.aikivinen.hoj.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class Piece {
+public abstract class Piece implements Serializable{
 
     public static final int PIECE_SIZE = MyGdxGame.SQUARE_SIZE - 10;
     protected Texture texture;
