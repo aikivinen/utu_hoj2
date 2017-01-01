@@ -5,7 +5,6 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.github.aikivinen.hoj.game.MyGdxGame;
 import com.github.aikivinen.hoj.game.rmi.GameService;
 
-import java.rmi.AlreadyBoundException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -14,6 +13,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 public class DesktopLauncher {
 
+    public static final int PORT = 4000;
     private static MyGdxGame gameInstance;
 
     public static void main(String[] arg) throws RemoteException {
@@ -35,17 +35,15 @@ public class DesktopLauncher {
 
             try {
                 GameService stub = (GameService) UnicastRemoteObject.exportObject(instance, 0);
-                Registry registry = LocateRegistry.getRegistry();
-                registry.bind("foxgame", stub);
+                Registry registry = LocateRegistry.createRegistry(PORT);
+                registry.rebind("foxgame", stub);
 
             } catch (RemoteException e) {
-                e.printStackTrace();
-            } catch (AlreadyBoundException e) {
                 e.printStackTrace();
             }
         } else {
             try {
-                Registry registry = LocateRegistry.getRegistry(null); // assume localhost for now
+                Registry registry = LocateRegistry.getRegistry("localhost", PORT); // assume localhost for now
                 GameService stub = (GameService) registry.lookup("foxgame");
                 gameInstance.setRemote(stub);
 
