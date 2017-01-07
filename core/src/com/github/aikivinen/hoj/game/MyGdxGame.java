@@ -25,7 +25,7 @@ public class MyGdxGame
     public enum Turn {FOX, HOUNDS}
 
     // fox starts the game
-    private Turn currentTurn = Turn.FOX;
+    private Turn currentTurn_ = Turn.FOX;
 
     public static final int SCREEN_HEIGHT = 640;
 
@@ -36,21 +36,21 @@ public class MyGdxGame
     final int BOARD_MARGIN_SIDES = 50;
     final int BOARD_MARGIN_TOP_BOTT = 50;
 
-    private SpriteBatch batch;
-    private OrthographicCamera camera;
+    private SpriteBatch batch_;
+    private OrthographicCamera camera_;
 
-    final Rectangle[][] board = new Rectangle[BOARD_WIDTH][BOARD_HEIGHT];
-    private Texture redSquare;
-    private Texture blackSquare;
+    final Rectangle[][] board_ = new Rectangle[BOARD_WIDTH][BOARD_HEIGHT];
+    private Texture redSquare_;
+    private Texture blackSquare_;
 //    private Texture availableMoveSquare;
 
-    private Piece selectedPiece;
+    private Piece selectedPiece_;
 
-    private Fox[] foxes = new Fox[1];
+    private Fox[] foxes_ = new Fox[1];
 
-    private Hound[] hounds = new Hound[4];
+    private Hound[] hounds_ = new Hound[4];
 
-    private GameService remote;
+    private GameService remote_;
 
 
 
@@ -64,13 +64,13 @@ public class MyGdxGame
         Gdx.app.setLogLevel(Application.LOG_DEBUG);
         Gdx.input.setInputProcessor(this);
 
-        foxes[0] = new Fox();
+        foxes_[0] = new Fox();
 
-        for (int i = 0; i < hounds.length; i++) {
+        for (int i = 0; i < hounds_.length; i++) {
             Hound hound = new Hound();
             hound.setLocationY(BOARD_HEIGHT - 1);
             hound.setLocationX(2 * i + 1);
-            hounds[i] = hound;
+            hounds_[i] = hound;
         }
 
         for (int i = 0; i < BOARD_WIDTH; i++) {
@@ -80,17 +80,17 @@ public class MyGdxGame
                 rect.setSize(SQUARE_SIZE);
                 rect.setX(i * SQUARE_SIZE + BOARD_MARGIN_SIDES);
                 rect.setY(j * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT);
-                board[i][j] = rect;
+                board_[i][j] = rect;
             }
         }
 
 
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, 800, 640);
+        camera_ = new OrthographicCamera();
+        camera_.setToOrtho(false, 800, 640);
 
-        batch = new SpriteBatch();
-        redSquare = new Texture("red.png");
-        blackSquare = new Texture("black.png");
+        batch_ = new SpriteBatch();
+        redSquare_ = new Texture("red.png");
+        blackSquare_ = new Texture("black.png");
         //      availableMoveSquare = new Texture("green.png");
 
 
@@ -106,23 +106,23 @@ public class MyGdxGame
         Gdx.gl.glClearColor(0, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        batch.begin();
+        batch_.begin();
         for (int x = 0; x < BOARD_WIDTH; x++) {
             for (int y = 0; y < BOARD_HEIGHT; y++) {
                 boolean isBlack = (x + y) % 2 == 0;
-                Rectangle rect = board[x][y];
-                batch.draw(
-                    isBlack ? blackSquare
-                    : redSquare, rect.x, rect.y, rect.width, rect.height
+                Rectangle rect = board_[x][y];
+                batch_.draw(
+                    isBlack ? blackSquare_
+                    : redSquare_, rect.x, rect.y, rect.width, rect.height
                 );
             }
         }
 
-        for (Piece p : concat(hounds, foxes)) {
+        for (Piece p : concat(hounds_, foxes_)) {
             drawPiece(p);
         }
 
-        batch.end();
+        batch_.end();
     }
 
     @Override
@@ -136,7 +136,7 @@ public class MyGdxGame
     }
 
     private void drawPiece(Piece piece) {
-        batch.draw(
+        batch_.draw(
             piece.getTexture(),
             piece.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES
                                         + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
@@ -150,7 +150,8 @@ public class MyGdxGame
     @Override
     public void dispose() {
 
-        for (Disposable disposable : new Disposable[]{batch, redSquare, blackSquare}) {
+        for (Disposable disposable :
+                        new Disposable[]{batch_, redSquare_, blackSquare_}) {
             disposable.dispose();
         }
 
@@ -175,14 +176,14 @@ public class MyGdxGame
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         Gdx.app.log(this.getClass().getSimpleName(), "in touchdown");
 
-        Piece prevSelection = selectedPiece;
+        Piece prevSelection = selectedPiece_;
         selectPiece(null);
 
         // normalize screenY
         screenY = SCREEN_HEIGHT - screenY;
 
         // process pieces
-        for (Piece p : concat(hounds, foxes)) {
+        for (Piece p : concat(hounds_, foxes_)) {
             boolean insideVerticalEdges = (
                 p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
                 && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT
@@ -201,8 +202,8 @@ public class MyGdxGame
                 if (prevSelection != null) {
                     // Clear any selected piece.
                     selectPiece(null);
-                    if (currentTurn == Turn.FOX && prevSelection instanceof Fox
-                            || currentTurn == Turn.HOUNDS
+                    if (currentTurn_ == Turn.FOX && prevSelection instanceof Fox
+                            || currentTurn_ == Turn.HOUNDS
                             && prevSelection instanceof Hound) {
 
                         int fromX = prevSelection.getLocationX();
@@ -210,11 +211,11 @@ public class MyGdxGame
 
                         int locX = (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE;
                         int locY = (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE;
-                        List<Piece> pieces = Arrays.asList(concat(foxes, hounds));
+                        List<Piece> pieces = Arrays.asList(concat(foxes_, hounds_));
 
                         if (prevSelection.moveTo(locX, locY, pieces)) {
                             try {
-                                remote.movePiece(
+                                remote_.movePiece(
                                     new Move(fromX, fromY, locX, locY)
                                 );
                             } catch (RemoteException e) {
@@ -233,10 +234,10 @@ public class MyGdxGame
 
 
     private void flipTurn() {
-        if (currentTurn == Turn.FOX) {
-            currentTurn = Turn.HOUNDS;
-        } else if (currentTurn == Turn.HOUNDS) {
-            currentTurn = Turn.FOX;
+        if (currentTurn_ == Turn.FOX) {
+            currentTurn_ = Turn.HOUNDS;
+        } else if (currentTurn_ == Turn.HOUNDS) {
+            currentTurn_ = Turn.FOX;
         }
     }
 
@@ -262,24 +263,24 @@ public class MyGdxGame
 
     public void selectPiece(Piece piece) {
         if (piece == null) {
-            if (selectedPiece != null) {
-                selectedPiece.setSelected(false);
-                selectedPiece = null;
+            if (selectedPiece_ != null) {
+                selectedPiece_.setSelected(false);
+                selectedPiece_ = null;
             }
         } else {
             piece.setSelected(true);
-            selectedPiece = piece;
+            selectedPiece_ = piece;
         }
     }
 
     @Override
     public boolean movePiece(Move move) throws RemoteException {
         System.out.println("movePiece" + " " + move);
-        for (int i = 0; i < foxes.length; i++) {
-            System.out.println(foxes[i]);
+        for (int i = 0; i < foxes_.length; i++) {
+            System.out.println(foxes_[i]);
         }
-        for (int i = 0; i < hounds.length; i++) {
-            System.out.println(hounds[i]);
+        for (int i = 0; i < hounds_.length; i++) {
+            System.out.println(hounds_[i]);
         }
         
         List<Piece> pieces = getPieces();
@@ -310,12 +311,12 @@ public class MyGdxGame
     }
 
     public GameService getRemote() {
-        return remote;
+        return remote_;
     }
 
     public void setRemote(GameService remote) {
        System.out.println("setRemote");
-        this.remote = remote;
+        this.remote_ = remote;
     }
 
     @Override
@@ -325,6 +326,6 @@ public class MyGdxGame
 
     @Override
     public List<Piece> getPieces() throws RemoteException {
-        return  Arrays.asList(concat(foxes, hounds));
+        return  Arrays.asList(concat(foxes_, hounds_));
     }
 }

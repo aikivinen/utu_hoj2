@@ -7,14 +7,14 @@ import com.badlogic.gdx.graphics.Texture;
 import java.io.Serializable;
 import java.util.List;
 
-public abstract class Piece implements Serializable{
+public abstract class Piece implements Serializable {
 
     public static final int PIECE_SIZE = MyGdxGame.SQUARE_SIZE - 10;
-    protected Texture texture;
+    protected Texture texture_;
 
-    protected Texture savedTexture;
-    private int locationX;
-    private int locationY;
+    protected Texture savedTexture_;
+    private int locationX_;
+    private int locationY_;
 
 
     public Piece() {
@@ -23,27 +23,27 @@ public abstract class Piece implements Serializable{
 
 
     public Texture getTexture() {
-        return texture;
+        return texture_;
     }
 
     public void setTexture(Texture texture) {
-        this.texture = texture;
+        this.texture_ = texture;
     }
 
     public int getLocationX() {
-        return locationX;
+        return locationX_;
     }
 
     public void setLocationX(int locationX) {
-        this.locationX = locationX;
+        this.locationX_ = locationX;
     }
 
     public int getLocationY() {
-        return locationY;
+        return locationY_;
     }
 
     public void setLocationY(int locationY) {
-        this.locationY = locationY;
+        this.locationY_ = locationY;
     }
 
     public abstract Texture getDefaultTexture();
@@ -93,8 +93,8 @@ public abstract class Piece implements Serializable{
     @Override
     public String toString() {
         return "Piece{" +
-                "locationX=" + locationX +
-                ", locationY=" + locationY +
+                "locationX=" + locationX_ +
+                ", locationY=" + locationY_ +
                 '}';
     }
 }
