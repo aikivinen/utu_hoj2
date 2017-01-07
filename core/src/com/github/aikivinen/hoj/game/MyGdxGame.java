@@ -7,6 +7,7 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.Disposable;
@@ -37,6 +38,8 @@ public class MyGdxGame
     private int screenHeight_;
     private int screenWidth_;
 
+    private BitmapFont font_;
+
     private SpriteBatch batch_;
     private OrthographicCamera camera_;
 
@@ -54,12 +57,20 @@ public class MyGdxGame
     private GameService remote_;
 
     private Type type_;
+    private String typeText_;
 
 
     public MyGdxGame(int screenHeight, int screenWidth, Type type) throws RemoteException {
         screenHeight_ = screenHeight;
         screenWidth_ = screenWidth;
+        
         type_ = type;
+        typeText_ = "You are playing as the ";
+        if (type_ == Type.FOX) {
+            typeText_+= "Fox";
+        } else if (type_ == Type.HOUNDS) {
+            typeText_ += "Hounds";
+        }
     }
 
     @Override
@@ -91,6 +102,10 @@ public class MyGdxGame
 
         camera_ = new OrthographicCamera();
         camera_.setToOrtho(false, 800, 640);
+
+        font_ = new BitmapFont();
+        font_.getData().setScale(1.5f);
+        font_.setColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         batch_ = new SpriteBatch();
         redSquare_ = new Texture("red.png");
@@ -126,6 +141,19 @@ public class MyGdxGame
             drawPiece(p);
         }
 
+        int typeTextY = BOARD_MARGIN_TOP_BOTT + SQUARE_SIZE;
+        if (type_ == Type.HOUNDS) {
+            typeTextY = BOARD_HEIGHT * SQUARE_SIZE;
+        }
+        
+        font_.draw(
+            batch_,
+            typeText_,
+            BOARD_WIDTH * SQUARE_SIZE
+                + 2 * BOARD_MARGIN_SIDES,
+            typeTextY
+        );
+    
         batch_.end();
     }
 
@@ -178,10 +206,6 @@ public class MyGdxGame
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Gdx.app.log(this.getClass().getSimpleName(), "currentTurn_:");
-        Gdx.app.log(this.getClass().getSimpleName(), currentTurn_.name());
-        Gdx.app.log(this.getClass().getSimpleName(), "type_:");
-        Gdx.app.log(this.getClass().getSimpleName(), type_.name());
         if (currentTurn_ == type_) {
             Gdx.app.log(this.getClass().getSimpleName(), "in touchdown");
 
