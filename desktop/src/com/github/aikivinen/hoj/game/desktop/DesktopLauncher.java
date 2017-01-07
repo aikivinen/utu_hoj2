@@ -22,7 +22,7 @@ public class DesktopLauncher {
 
         String serverHostname = "localhost";
         if (arg.length > 0 && arg[0].equals("server")) {
-            serverHostname = ""
+            serverHostname = "";
         }
         else if (arg.length > 0) {
             serverHostname = arg[0];
@@ -32,7 +32,7 @@ public class DesktopLauncher {
             "Starting game. Server mode: " + serverHostname.isEmpty()
         );
 
-        initRmi(isServer, serverHostname, gameInstance);
+        initRmi(serverHostname, gameInstance);
 
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.height = 640;
