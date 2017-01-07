@@ -18,8 +18,8 @@ import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
 
-public class MyGdxGame  implements ApplicationListener, InputProcessor, GameService, Serializable {
-
+public class MyGdxGame
+        implements ApplicationListener, InputProcessor, GameService, Serializable {
 
 
     public enum Turn {FOX, HOUNDS}
@@ -111,7 +111,10 @@ public class MyGdxGame  implements ApplicationListener, InputProcessor, GameServ
             for (int y = 0; y < BOARD_HEIGHT; y++) {
                 boolean isBlack = (x + y) % 2 == 0;
                 Rectangle rect = board[x][y];
-                batch.draw(isBlack ? blackSquare : redSquare, rect.x, rect.y, rect.width, rect.height);
+                batch.draw(
+                    isBlack ? blackSquare
+                    : redSquare, rect.x, rect.y, rect.width, rect.height
+                );
             }
         }
 
@@ -134,11 +137,14 @@ public class MyGdxGame  implements ApplicationListener, InputProcessor, GameServ
 
     private void drawPiece(Piece piece) {
         batch.draw(
-                piece.getTexture(),
-                piece.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
-                piece.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_SIDES + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
-                Piece.PIECE_SIZE,
-                Piece.PIECE_SIZE);
+            piece.getTexture(),
+            piece.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES
+                                        + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
+            piece.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_SIDES
+                                        + (SQUARE_SIZE - Piece.PIECE_SIZE) / 2,
+            Piece.PIECE_SIZE,
+            Piece.PIECE_SIZE
+        );
     }
 
     @Override
@@ -177,18 +183,27 @@ public class MyGdxGame  implements ApplicationListener, InputProcessor, GameServ
 
         // process pieces
         for (Piece p : concat(hounds, foxes)) {
-            if ((p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
-                    && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT + Piece.PIECE_SIZE >= screenY)
-                    && (p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
-                    && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES + Piece.PIECE_SIZE >= screenX)) {
-
+            boolean insideVerticalEdges = (
+                p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
+                && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT
+                                                    + Piece.PIECE_SIZE >= screenY
+            );
+            boolean insideHorizontalEdges = (
+                p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
+                && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES
+                                                    + Piece.PIECE_SIZE >= screenX
+            );
+            
+            if (insideVerticalEdges && insideHorizontalEdges) {
+                // If touchdown is inside this piece.
                 selectPiece(p);
             } else {
                 if (prevSelection != null) {
+                    // Clear any selected piece.
                     selectPiece(null);
                     if (currentTurn == Turn.FOX && prevSelection instanceof Fox
-                            || currentTurn == Turn.HOUNDS && prevSelection instanceof Hound) {
-
+                            || currentTurn == Turn.HOUNDS
+                            && prevSelection instanceof Hound) {
 
                         int fromX = prevSelection.getLocationX();
                         int fromY = prevSelection.getLocationY();
@@ -199,7 +214,9 @@ public class MyGdxGame  implements ApplicationListener, InputProcessor, GameServ
 
                         if (prevSelection.moveTo(locX, locY, pieces)) {
                             try {
-                                remote.movePiece(new Move(fromX, fromY, locX, locY));
+                                remote.movePiece(
+                                    new Move(fromX, fromY, locX, locY)
+                                );
                             } catch (RemoteException e) {
                                 e.printStackTrace();
                             }
@@ -264,17 +281,22 @@ public class MyGdxGame  implements ApplicationListener, InputProcessor, GameServ
         for (int i = 0; i < hounds.length; i++) {
             System.out.println(hounds[i]);
         }
+        
         List<Piece> pieces = getPieces();
         System.out.println(Arrays.toString(pieces.toArray()));
 
         Piece selection = null;
         for (Piece p : pieces) {
-            if (p.getLocationX() == move.getFromX() && p.getLocationY() == move.getFromY()) {
+            if (p.getLocationX() == move.getFromX()
+                    && p.getLocationY() == move.getFromY()) {
                 selection = p;
             }
         }
+        
         flipTurn();
-        return selection != null && selection.moveTo(move.getToX(), move.getToY(), pieces);
+        
+        return selection != null
+                    && selection.moveTo(move.getToX(), move.getToY(), pieces);
     }
 
 

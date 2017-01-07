@@ -49,7 +49,8 @@ public abstract class Piece implements Serializable{
     public abstract Texture getDefaultTexture();
 
     /**
-     * Move piece to the given coordinates. The method implementation should enforce that the move is valid.
+     * Move piece to the given coordinates. The method implementation should
+     * enforce that the move is valid.
      *
      * @param x
      * @param y

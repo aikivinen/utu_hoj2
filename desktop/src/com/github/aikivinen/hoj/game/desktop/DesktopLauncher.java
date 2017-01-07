@@ -20,13 +20,19 @@ public class DesktopLauncher {
     public static void main(String[] arg) throws RemoteException {
         MyGdxGame gameInstance = new MyGdxGame();
 
-        boolean isServer = arg.length > 0 && arg[0].equals("server");
-        String hostname = !isServer && arg.length > 0 ? arg[0] : null;
+        String serverHostname = "localhost";
+        if (arg.length > 0 && arg[0].equals("server")) {
+            serverHostname = ""
+        }
+        else if (arg.length > 0) {
+            serverHostname = arg[0];
+        }
 
+        System.out.println(
+            "Starting game. Server mode: " + serverHostname.isEmpty()
+        );
 
-        System.out.println("Starting game. Server mode: " + isServer);
-
-        initRmi(isServer, hostname, gameInstance);
+        initRmi(isServer, serverHostname, gameInstance);
 
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
         config.height = 640;
@@ -34,11 +40,12 @@ public class DesktopLauncher {
         new LwjglApplication(gameInstance, config);
     }
 
-    private static void initRmi(boolean isServer, String hostname, MyGdxGame instance) {
-        if (isServer) {
+    private static void initRmi(String serverHostname, MyGdxGame instance) {
+        if (serverHostname.isEmpty()) {
 
             try {
-                GameService stub = (GameService) UnicastRemoteObject.exportObject(instance, 0);
+                GameService stub =
+                    (GameService) UnicastRemoteObject.exportObject(instance, 0);
                 Registry registry = LocateRegistry.createRegistry(PORT);
                 registry.rebind(GAME_NAME, stub);
 
@@ -47,11 +54,13 @@ public class DesktopLauncher {
             }
         } else {
             try {
-                Registry registry = LocateRegistry.getRegistry(hostname, PORT); // assume localhost for now
+                Registry registry =
+                                LocateRegistry.getRegistry(serverHostname, PORT);
                 GameService stub = (GameService) registry.lookup(GAME_NAME);
                 instance.setRemote(stub);
 
-                GameService callback = (GameService) UnicastRemoteObject.exportObject(instance, 0);
+                GameService callback =
+                    (GameService) UnicastRemoteObject.exportObject(instance, 0);
                 stub.setRemoteService(callback);
 
             } catch (RemoteException e) {
