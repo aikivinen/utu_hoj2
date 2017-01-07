@@ -16,17 +16,26 @@ public class DesktopLauncher {
     public static final int PORT = 4000;
     public static final String GAME_NAME = "foxgame";
 
+    public static final int SCREEN_HEIGHT = 640;
+    public static final int SCREEN_WIDTH = 800;
 
     public static void main(String[] arg) throws RemoteException {
-        MyGdxGame gameInstance = new MyGdxGame();
 
         String serverHostname = "localhost";
+        MyGdxGame.Type playerType = MyGdxGame.Type.HOUNDS;
         if (arg.length > 0 && arg[0].equals("server")) {
             serverHostname = "";
+            playerType = MyGdxGame.Type.FOX;
         }
         else if (arg.length > 0) {
             serverHostname = arg[0];
         }
+        
+        MyGdxGame gameInstance = new MyGdxGame(
+            SCREEN_HEIGHT,
+            SCREEN_WIDTH,
+            playerType
+        );
 
         System.out.println(
             "Starting game. Server mode: " + serverHostname.isEmpty()
@@ -35,8 +44,8 @@ public class DesktopLauncher {
         initRmi(serverHostname, gameInstance);
 
         LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-        config.height = 640;
-        config.width = 800;
+        config.height = SCREEN_HEIGHT;
+        config.width = SCREEN_WIDTH;
         new LwjglApplication(gameInstance, config);
     }
 

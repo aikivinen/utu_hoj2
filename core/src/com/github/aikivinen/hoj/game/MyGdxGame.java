@@ -22,12 +22,10 @@ public class MyGdxGame
         implements ApplicationListener, InputProcessor, GameService, Serializable {
 
 
-    public enum Turn {FOX, HOUNDS}
+    public enum Type {FOX, HOUNDS}
 
     // fox starts the game
-    private Turn currentTurn_ = Turn.FOX;
-
-    public static final int SCREEN_HEIGHT = 640;
+    private Type currentTurn_ = Type.FOX;
 
     public static final int BOARD_WIDTH = 8;
     public static final int BOARD_HEIGHT = 8;
@@ -35,6 +33,9 @@ public class MyGdxGame
 
     final int BOARD_MARGIN_SIDES = 50;
     final int BOARD_MARGIN_TOP_BOTT = 50;
+
+    private int screenHeight_;
+    private int screenWidth_;
 
     private SpriteBatch batch_;
     private OrthographicCamera camera_;
@@ -52,10 +53,13 @@ public class MyGdxGame
 
     private GameService remote_;
 
+    private Type type_;
 
 
-    public MyGdxGame() throws RemoteException{
-
+    public MyGdxGame(int screenHeight, int screenWidth, Type type) throws RemoteException {
+        screenHeight_ = screenHeight;
+        screenWidth_ = screenWidth;
+        type_ = type;
     }
 
     @Override
@@ -174,70 +178,79 @@ public class MyGdxGame
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        Gdx.app.log(this.getClass().getSimpleName(), "in touchdown");
+        Gdx.app.log(this.getClass().getSimpleName(), "currentTurn_:");
+        Gdx.app.log(this.getClass().getSimpleName(), currentTurn_.name());
+        Gdx.app.log(this.getClass().getSimpleName(), "type_:");
+        Gdx.app.log(this.getClass().getSimpleName(), type_.name());
+        if (currentTurn_ == type_) {
+            Gdx.app.log(this.getClass().getSimpleName(), "in touchdown");
 
-        Piece prevSelection = selectedPiece_;
-        selectPiece(null);
+            Piece prevSelection = selectedPiece_;
+            selectPiece(null);
 
-        // normalize screenY
-        screenY = SCREEN_HEIGHT - screenY;
+            // normalize screenY
+            screenY = screenHeight_ - screenY;
 
-        // process pieces
-        for (Piece p : concat(hounds_, foxes_)) {
-            boolean insideVerticalEdges = (
-                p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
-                && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT
-                                                    + Piece.PIECE_SIZE >= screenY
-            );
-            boolean insideHorizontalEdges = (
-                p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
-                && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES
-                                                    + Piece.PIECE_SIZE >= screenX
-            );
-            
-            if (insideVerticalEdges && insideHorizontalEdges) {
-                // If touchdown is inside this piece.
-                selectPiece(p);
-            } else {
-                if (prevSelection != null) {
-                    // Clear any selected piece.
-                    selectPiece(null);
-                    if (currentTurn_ == Turn.FOX && prevSelection instanceof Fox
-                            || currentTurn_ == Turn.HOUNDS
-                            && prevSelection instanceof Hound) {
+            // process pieces
+            for (Piece p : (currentTurn_ == Type.HOUNDS) ? hounds_ : foxes_) {
+                boolean insideVerticalEdges = (
+                    p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT <= screenY
+                    && p.getLocationY() * SQUARE_SIZE + BOARD_MARGIN_TOP_BOTT
+                                                        + Piece.PIECE_SIZE >= screenY
+                );
+                boolean insideHorizontalEdges = (
+                    p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES <= screenX
+                    && p.getLocationX() * SQUARE_SIZE + BOARD_MARGIN_SIDES
+                                                        + Piece.PIECE_SIZE >= screenX
+                );
+                
+                if (insideVerticalEdges && insideHorizontalEdges) {
+                    // If touchdown is inside this piece.
+                    selectPiece(p);
+                } else {
+                    if (prevSelection != null) {
+                        // Clear any selected piece.
+                        selectPiece(null);
+                        if (currentTurn_ == Type.FOX && prevSelection instanceof Fox
+                                || currentTurn_ == Type.HOUNDS
+                                && prevSelection instanceof Hound) {
 
-                        int fromX = prevSelection.getLocationX();
-                        int fromY = prevSelection.getLocationY();
+                            int fromX = prevSelection.getLocationX();
+                            int fromY = prevSelection.getLocationY();
 
-                        int locX = (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE;
-                        int locY = (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE;
-                        List<Piece> pieces = Arrays.asList(concat(foxes_, hounds_));
+                            int locX = (screenX - BOARD_MARGIN_SIDES) / SQUARE_SIZE;
+                            int locY = (screenY - BOARD_MARGIN_TOP_BOTT) / SQUARE_SIZE;
+                            List<Piece> pieces = Arrays.asList(concat(foxes_, hounds_));
 
-                        if (prevSelection.moveTo(locX, locY, pieces)) {
-                            try {
-                                remote_.movePiece(
-                                    new Move(fromX, fromY, locX, locY)
-                                );
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
+                            if (prevSelection.moveTo(locX, locY, pieces)) {
+                                try {
+                                    remote_.movePiece(
+                                        new Move(fromX, fromY, locX, locY)
+                                    );
+                                } catch (RemoteException e) {
+                                    e.printStackTrace();
+                                }
+                                flipTurn();
                             }
-                            flipTurn();
+                            prevSelection = null;
                         }
-                        prevSelection = null;
                     }
                 }
             }
-        }
 
-        return true;
+            return true;
+        }
+        
+        selectPiece(null);
+        return false;
     }
 
 
     private void flipTurn() {
-        if (currentTurn_ == Turn.FOX) {
-            currentTurn_ = Turn.HOUNDS;
-        } else if (currentTurn_ == Turn.HOUNDS) {
-            currentTurn_ = Turn.FOX;
+        if (currentTurn_ == Type.FOX) {
+            currentTurn_ = Type.HOUNDS;
+        } else if (currentTurn_ == Type.HOUNDS) {
+            currentTurn_ = Type.FOX;
         }
     }
 
