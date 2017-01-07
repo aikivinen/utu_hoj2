@@ -23,7 +23,7 @@ public class MyGdxGame
         implements ApplicationListener, InputProcessor, GameService, Serializable {
 
 
-    public enum Type {FOX, HOUNDS}
+    public enum Type {NONE, FOX, HOUNDS}
 
     // fox starts the game
     private Type currentTurn_ = Type.FOX;
@@ -58,8 +58,11 @@ public class MyGdxGame
     private Type type_;
     private String typeText_;
     private BitmapFont typeFont_;
-    private String yourTurnText_;
-    private String waitingMoveText_;
+    private static final String YOUR_TURN_TEXT = "It's your turn!";
+    private static final String WAITING_OTHER_TEXT = "Waiting for the opponet.";
+    private static final String YOU_WIN_TEXT = "You win!";
+    private static final String YOU_LOSE_TEXT = "You lose!";
+    private String messageText_;
     private BitmapFont messageFont_;
 
 
@@ -75,8 +78,7 @@ public class MyGdxGame
             typeText_ += "Hounds";
         }
         
-        yourTurnText_ = "It's your turn!";
-        waitingMoveText_ = "Waiting for the opponet.";
+        messageText_ = "";
     }
 
     @Override
@@ -163,9 +165,14 @@ public class MyGdxGame
             typeTextY
         );
         
+        if (currentTurn_ != Type.NONE) {
+            messageText_ =
+                (currentTurn_ == type_) ? YOUR_TURN_TEXT : WAITING_OTHER_TEXT;
+        }
+        
         messageFont_.draw(
             batch_,
-            (currentTurn_ == type_) ? yourTurnText_ : waitingMoveText_,
+            messageText_,
             BOARD_MARGIN_SIDES,
             BOARD_HEIGHT * SQUARE_SIZE + 3.5f * BOARD_MARGIN_SIDES
         );
@@ -270,6 +277,7 @@ public class MyGdxGame
                                 } catch (RemoteException e) {
                                     e.printStackTrace();
                                 }
+                                
                                 flipTurn();
                             }
                             prevSelection = null;
@@ -285,13 +293,49 @@ public class MyGdxGame
         return false;
     }
 
-
     private void flipTurn() {
-        if (currentTurn_ == Type.FOX) {
-            currentTurn_ = Type.HOUNDS;
-        } else if (currentTurn_ == Type.HOUNDS) {
-            currentTurn_ = Type.FOX;
+        if (!isGameEnded()) {
+            if (currentTurn_ == Type.FOX) {
+                currentTurn_ = Type.HOUNDS;
+            } else if (currentTurn_ == Type.HOUNDS) {
+                currentTurn_ = Type.FOX;
+            }
         }
+    }
+    
+    private boolean isGameEnded() {
+        Type winner = Type.NONE;
+        boolean gameEnd = false;
+        
+        for (Piece p : foxes_) {
+            if (p.getLocationY() == BOARD_HEIGHT - 1) {
+                winner = Type.FOX;
+                gameEnd = true;
+                break;
+            }
+        }
+        
+        if (winner == Type.NONE) {
+            for (Piece p : hounds_) {
+                /*if (false) {
+                    winner = Type.HOUNDS;
+                    gameEnd = true;
+                    break;
+                }*/
+            }
+        }
+        
+        if (gameEnd) {
+            currentTurn_ = Type.NONE;
+            
+            if (winner == type_) {
+                messageText_ = YOU_WIN_TEXT;
+            } else {
+                messageText_ = YOU_LOSE_TEXT;
+            }
+        }
+        
+        return gameEnd;
     }
 
     @Override
@@ -347,10 +391,11 @@ public class MyGdxGame
             }
         }
         
+        boolean moveResult = selection.moveTo(move.getToX(), move.getToY(), pieces);
+        
         flipTurn();
         
-        return selection != null
-                    && selection.moveTo(move.getToX(), move.getToY(), pieces);
+        return selection != null && moveResult;
     }
 
 
