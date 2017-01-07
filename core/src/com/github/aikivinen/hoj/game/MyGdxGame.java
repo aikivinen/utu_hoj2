@@ -38,7 +38,6 @@ public class MyGdxGame
     private int screenHeight_;
     private int screenWidth_;
 
-    private BitmapFont font_;
 
     private SpriteBatch batch_;
     private OrthographicCamera camera_;
@@ -58,6 +57,10 @@ public class MyGdxGame
 
     private Type type_;
     private String typeText_;
+    private BitmapFont typeFont_;
+    private String yourTurnText_;
+    private String waitingMoveText_;
+    private BitmapFont messageFont_;
 
 
     public MyGdxGame(int screenHeight, int screenWidth, Type type) throws RemoteException {
@@ -71,6 +74,9 @@ public class MyGdxGame
         } else if (type_ == Type.HOUNDS) {
             typeText_ += "Hounds";
         }
+        
+        yourTurnText_ = "It's your turn!";
+        waitingMoveText_ = "Waiting for the opponet.";
     }
 
     @Override
@@ -103,9 +109,13 @@ public class MyGdxGame
         camera_ = new OrthographicCamera();
         camera_.setToOrtho(false, 800, 640);
 
-        font_ = new BitmapFont();
-        font_.getData().setScale(1.5f);
-        font_.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+        typeFont_ = new BitmapFont();
+        typeFont_.getData().setScale(1.5f);
+        typeFont_.setColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+        messageFont_ = new BitmapFont();
+        messageFont_.getData().setScale(4.0f);
+        messageFont_.setColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         batch_ = new SpriteBatch();
         redSquare_ = new Texture("red.png");
@@ -146,12 +156,18 @@ public class MyGdxGame
             typeTextY = BOARD_HEIGHT * SQUARE_SIZE;
         }
         
-        font_.draw(
+        typeFont_.draw(
             batch_,
             typeText_,
-            BOARD_WIDTH * SQUARE_SIZE
-                + 2 * BOARD_MARGIN_SIDES,
+            BOARD_WIDTH * SQUARE_SIZE + 2 * BOARD_MARGIN_SIDES,
             typeTextY
+        );
+        
+        messageFont_.draw(
+            batch_,
+            (currentTurn_ == type_) ? yourTurnText_ : waitingMoveText_,
+            BOARD_MARGIN_SIDES,
+            BOARD_HEIGHT * SQUARE_SIZE + 3.5f * BOARD_MARGIN_SIDES
         );
     
         batch_.end();
