@@ -4,44 +4,43 @@ import java.io.Serializable;
 
 public class Move implements Serializable {
 
-    private int fromX;
-    private int fromY;
+    private int fromX_;
+    private int fromY_;
 
-    private int toX;
-    private int toY;
+    private int toX_;
+    private int toY_;
 
     public Move(int fromX, int fromY, int toX, int toY) {
-        this.fromX = fromX;
-        this.fromY = fromY;
-        this.toX = toX;
-        this.toY = toY;
+        this.fromX_ = fromX;
+        this.fromY_ = fromY;
+        this.toX_ = toX;
+        this.toY_ = toY;
     }
 
 
     public int getFromX() {
-        return fromX;
+        return fromX_;
     }
 
     public int getFromY() {
-        return fromY;
+        return fromY_;
     }
 
     public int getToX() {
-        return toX;
+        return toX_;
     }
 
     public int getToY() {
-        return toY;
+        return toY_;
     }
 
     @Override
     public String toString() {
         return "Move{" +
-                "fromX=" + fromX +
-                ", fromY=" + fromY +
-                ", toX=" + toX +
-                ", toY=" + toY +
+                "fromX=" + fromX_ +
+                ", fromY=" + fromY_ +
+                ", toX=" + toX_ +
+                ", toY=" + toY_ +
                 '}';
     }
 }
-
