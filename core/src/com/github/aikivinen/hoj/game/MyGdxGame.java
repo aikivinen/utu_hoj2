@@ -316,19 +316,17 @@ public class MyGdxGame
         }
         
         if (winner == Type.NONE) {
-            for (Piece p : hounds_) {
-                /*if (false) {
-                    winner = Type.HOUNDS;
-                    gameEnd = true;
-                    break;
-                }*/
+            if (checkHoundsWinCondition()) {
+                winner = Type.HOUNDS;
+                gameEnd = true;
             }
         }
+
         
         if (gameEnd) {
             currentTurn_ = Type.NONE;
             
-            if (winner == type_) {
+            if (winner.equals(type_)) {
                 messageText_ = YOU_WIN_TEXT;
             } else {
                 messageText_ = YOU_LOSE_TEXT;
@@ -425,5 +423,22 @@ public class MyGdxGame
     @Override
     public List<Piece> getPieces() throws RemoteException {
         return  Arrays.asList(concat(foxes_, hounds_));
+    }
+
+    /**
+     * Checks whether the hounds have won the game. The hounds have won if the fox (or any of the foxes) can't move anywhere
+     * @return true if the hounds have won the game
+     */
+    private boolean checkHoundsWinCondition() {
+        for (Fox fox : foxes_) {
+            for (int i = 0; i < BOARD_HEIGHT; i++) {
+                for (int j = 0; j < BOARD_WIDTH; j++) {
+                    if  (fox.isAllowedToMoveTo(j,i, Arrays.asList(concat(foxes_,hounds_)))) {
+                        return false;
+                    };
+                }
+            }
+        }
+        return true;
     }
 }
